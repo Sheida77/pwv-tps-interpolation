@@ -1,4 +1,3 @@
-<img width="1366" height="768" alt="image" src="https://github.com/user-attachments/assets/c39e4b5c-4cc9-4208-b4ed-adecf8cf97db" /># pwv-tps-interpolation
 GPS-Derived PWV using TPS Interpolation
 # PWV Interpolation using Thin Plate Spline (TPS)
 
