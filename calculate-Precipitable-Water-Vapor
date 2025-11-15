@@ -1,0 +1,81 @@
+import math
+import numpy as np
+
+# Load data from text files
+cordinate = np.loadtxt('N23point.txt')
+pwV = np.array((np.loadtxt('Npwvsummer23.txt')).T).reshape(12, len(cordinate))
+pwv = []
+O = np.zeros((12, 4))
+
+# Process the data
+for i in range(12):
+    pwv.append(np.concatenate((pwV[i], O[i])))
+print('----------tps-----------')
+cordinate = np.loadtxt('N23point.txt')
+matrisP = np.loadtxt('N23matris.txt')
+latitude = np.loadtxt('N23point.txt', usecols=0)
+
+# Calculate distance matrix
+from math import dist
+distance = []
+for i in range(len(cordinate)):
+    for j in range(len(cordinate)):
+        distance.append(dist(cordinate[j], cordinate[i]))
+
+u = []
+for item in distance:
+    if item != 0:
+        u.append((((item**2) + (1400**2))**2) * (math.log((math.sqrt((item**2) + (1400**2)))))))
+    else:
+        u.append(0)
+
+# Create distance matrix
+k = np.array(u).reshape(len(latitude), len(latitude))
+P = np.array(matrisP).reshape(len(latitude), 4)
+
+# Construct a new matrix
+a = []
+for j in range(len(latitude)):
+    a.append(np.concatenate((k[j], P[j])))
+
+aa = np.array(a).reshape(len(latitude), (len(latitude) + 4))
+
+o = np.zeros((4, 4))
+
+b = []
+for j in range(4):
+    b.append(np.concatenate((P.T[j], o[j])))
+
+bb = np.array(b).reshape(4, (len(latitude) + 4))
+
+A = np.vstack((aa, bb))
+
+# Reshape and solve for PWV
+pWv = np.array(pwv).reshape(12, (len(latitude) + 4))
+
+X = []
+for i in pWv:
+    X.append(np.linalg.inv(A).dot(i))
+
+# Plot map
+lats = np.loadtxt('un.txt', usecols=0)
+lons = np.loadtxt('un.txt', usecols=1)
+altitude = np.loadtxt('unknow-0.txt')
+temp_dat = np.loadtxt('y.txt')
+
+zoom_scale = 6
+bbox = [np.min(lats) - zoom_scale, np.max(lats) + zoom_scale,
+        np.min(lons) - zoom_scale, np.max(lons) + zoom_scale]
+
+fig, ax = plt.subplots(figsize=(12, 7))
+
+# Setup for map plotting (code commented out)
+# m = Basemap(projection='merc', llcrnrlat=bbox[0], urcrnrlat=bbox[1],
+#             llcrnrlon=bbox[2], urcrnrlon=bbox[3], lat_ts=10, resolution='i')
+# m.drawcoastlines()
+# m.fillcontinents(color='#CCCCCC', lake_color='lightblue')
+# m.drawparallels(np.arange(bbox[0], bbox[1], (bbox[1] - bbox[0]) / 5), labels=[1, 0, 0, 0])
+# m.drawmeridians(np.arange(bbox[2], bbox[3], (bbox[3] - bbox[2]) / 5), labels=[0, 0, 0, 1], rotation=15)
+# m.drawmapboundary(fill_color='lightblue')
+
+plt.show()
