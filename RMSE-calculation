@@ -1,0 +1,89 @@
+import numpy as np
+import math
+from scipy.interpolate import interp1d
+from math import dist
+
+# Load data from text files
+PressureT = np.loadtxt('tsum.txt', usecols=1)
+Temperature = np.loadtxt('tsum.txt', usecols=4)
+time = np.loadtxt('tsum.txt', usecols=0)
+time = time - 1052736
+OrthoHeight = np.loadtxt('usort.txt', usecols=2)
+Geopotential = np.loadtxt('zsum.txt', usecols=4)
+Pressure = np.loadtxt('zsum.txt', usecols=1)
+GeopotentialHeight = Geopotential / 9.80665
+rhh = np.loadtxt('rsum.txt', usecols=4)
+rh = np.array(rhh).reshape(12, 2997)
+
+# Load more data and reshape arrays
+temperaturee = np.loadtxt('tempsum.txt', usecols=4)
+temperatureee = np.array(temperaturee).reshape(12, 2997)
+p = np.loadtxt('tempsum.txt', usecols=1)
+pr = np.array(p).reshape(12, 2997)
+
+# Calculate interpolated pressure values
+Ps = []
+for i in OrthoHeight:
+    if i > 150:
+        X = GeopotentialHeight
+        Y = Pressure
+        interpolate_x = i
+        Pressure_interp = interp1d(X, Y)
+        Ps.append(Pressure_interp(interpolate_x))
+    else:
+        Ps.append(1000)
+
+# Load additional pressure data
+pp = np.loadtxt('rsum.txt', usecols=1)
+prr = np.array(pp).reshape(12, 2997)
+
+# Perform further calculations using temperature and pressure
+e = []
+for i in range(12):
+    X = prr[i]
+    Y = rh[i]
+    interpolate_x = Ps
+    Temperature_interp = interp1d(X, Y)
+    e.append(Temperature_interp(interpolate_x))
+
+# Calculate additional variables
+cordinatee = np.loadtxt('3.txt')
+cordinateee = np.loadtxt('usort.txt')
+
+distanceQ = []
+for j in range(len(cordinateee)):
+    for i in range(len(cordinatee)):
+        distanceQ.append(1 / ((dist(cordinatee[i], cordinateee[j])) ** 2))
+
+distance = np.array(distanceQ).reshape(len(cordinatee), len(latitude))
+
+# Perform distance-based calculations and interpolation
+up = []
+for i in distance:
+    for r in range(len(latitude)):
+        up.append(i[r] * pWv[0][r])
+
+Up = np.array(up).reshape(len(cordinatee), len(latitude))
+SumMulti = []
+for i in Up:
+    SumMulti.append(sum(i))
+
+SumMultii = []
+for j in distance:
+    SumMultii.append(sum(j))
+
+k = []
+for i in range(4):
+    k.append(SumMulti[i] / SumMultii[i])
+
+# Final calculation of RMSE (Root Mean Square Error)
+rmss = []
+for i in range(4):
+    rmss.append((k[i] - pwvv[i]) ** 2)
+
+R = math.sqrt((sum(rmss)) / 4)
+print(R)
+
+# Optionally save RMSE to file
+# with open('RMSEidw24.txt', 'a') as record_append:
+#     np.savetxt(record_append, [R], delimiter=',', newline='\\n', fmt='%6f')
